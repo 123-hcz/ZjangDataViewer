@@ -1,0 +1,4 @@
+wxPython
+pandas
+openpyxl
+click
