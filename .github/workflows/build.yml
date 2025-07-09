@@ -42,7 +42,7 @@ jobs:
       - name: Move executable to dist root
         run: |
           mkdir upload
-          cp -r dist/mail/main.exe upload/
+          cp -r dist/main/main.exe upload/
         shell: bash
 
       - name: Upload artifact
