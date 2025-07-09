@@ -39,14 +39,19 @@ jobs:
             --icon "src/image/icon_packs/classic/123Excel II.ico"
         shell: bash
 
-      - name: Move executable to dist root
+      - name: Move exe to src and prepare release folder
         run: |
-          mkdir upload
-          cp dist/main.exe upload/
+          mv dist/main.exe src/
+          mv src release
+        shell: bash
+
+      - name: Zip release folder
+        run: |
+          7z a release.zip ./release/*
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ZjangDataViewer-win
-          path: upload/
+          path: release.zip
