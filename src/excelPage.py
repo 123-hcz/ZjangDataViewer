@@ -84,24 +84,24 @@ class excelPage_ ( wx.Frame ):
 
 		self.save = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.save.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/save.png", wx.BITMAP_TYPE_ANY ))
-		self.save.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/save1.png", wx.BITMAP_TYPE_ANY ))
+		self.save.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/save.png", wx.BITMAP_TYPE_ANY ))
+		self.save.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/save1.png", wx.BITMAP_TYPE_ANY ))
 		self.save.SetToolTip(_(u"保存文件"))
 
 		tools.Add(self.save, 0, 0, 5)
 
 		self.saveas = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.saveas.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/saveas.png", wx.BITMAP_TYPE_ANY ))
-		self.saveas.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/saveas1.png", wx.BITMAP_TYPE_ANY ))
+		self.saveas.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/saveas.png", wx.BITMAP_TYPE_ANY ))
+		self.saveas.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/saveas1.png", wx.BITMAP_TYPE_ANY ))
 		self.saveas.SetToolTip(_(u"另存为"))
 
 		tools.Add(self.saveas, 0, 0, 5)
 
 		self.getMax = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.getMax.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/max.png", wx.BITMAP_TYPE_ANY ))
-		self.getMax.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/max1.png", wx.BITMAP_TYPE_ANY ))
+		self.getMax.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/max.png", wx.BITMAP_TYPE_ANY ))
+		self.getMax.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/max1.png", wx.BITMAP_TYPE_ANY ))
 		self.getMax.Hide()
 		self.getMax.SetToolTip(_(u"最大值"))
 
@@ -109,8 +109,8 @@ class excelPage_ ( wx.Frame ):
 
 		self.getMin = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.getMin.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/min.png", wx.BITMAP_TYPE_ANY ))
-		self.getMin.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/min1.png", wx.BITMAP_TYPE_ANY ))
+		self.getMin.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/min.png", wx.BITMAP_TYPE_ANY ))
+		self.getMin.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/min1.png", wx.BITMAP_TYPE_ANY ))
 		self.getMin.Hide()
 		self.getMin.SetToolTip(_(u"最小值"))
 
@@ -118,8 +118,8 @@ class excelPage_ ( wx.Frame ):
 
 		self.getAvg = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.getAvg.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/avg.png", wx.BITMAP_TYPE_ANY ))
-		self.getAvg.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/avg1.png", wx.BITMAP_TYPE_ANY ))
+		self.getAvg.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/avg.png", wx.BITMAP_TYPE_ANY ))
+		self.getAvg.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/avg1.png", wx.BITMAP_TYPE_ANY ))
 		self.getAvg.Hide()
 		self.getAvg.SetToolTip(_(u"平均值"))
 
@@ -127,8 +127,8 @@ class excelPage_ ( wx.Frame ):
 
 		self.getCustomize = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.getCustomize.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/customize.png", wx.BITMAP_TYPE_ANY ))
-		self.getCustomize.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/customize1.png", wx.BITMAP_TYPE_ANY ))
+		self.getCustomize.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/customize.png", wx.BITMAP_TYPE_ANY ))
+		self.getCustomize.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/customize1.png", wx.BITMAP_TYPE_ANY ))
 		self.getCustomize.Hide()
 		self.getCustomize.SetToolTip(_(u"自定义准则，挑选符合准则的项"))
 
@@ -239,16 +239,16 @@ x>=100 # x-100:
 
 		self.setting = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.setting.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/setting.png", wx.BITMAP_TYPE_ANY ))
-		self.setting.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/setting1.png", wx.BITMAP_TYPE_ANY ))
+		self.setting.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/setting.png", wx.BITMAP_TYPE_ANY ))
+		self.setting.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/setting1.png", wx.BITMAP_TYPE_ANY ))
 		self.setting.SetToolTip(_(u"设置"))
 
 		others.Add(self.setting, 0, wx.ALL, 5)
 
 		self.exit = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.exit.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/exit.png", wx.BITMAP_TYPE_ANY ))
-		self.exit.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/exit1.png", wx.BITMAP_TYPE_ANY ))
+		self.exit.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/exit.png", wx.BITMAP_TYPE_ANY ))
+		self.exit.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/exit1.png", wx.BITMAP_TYPE_ANY ))
 		self.exit.SetToolTip(_(u"退出"))
 
 		others.Add(self.exit, 0, wx.ALL, 5)
