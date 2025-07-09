@@ -48,16 +48,16 @@ class openFilePage ( wx.Frame ):
 
 		self.open = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
-		self.open.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/open.png", wx.BITMAP_TYPE_ANY ))
-		self.open.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/open1.png", wx.BITMAP_TYPE_ANY ))
+		self.open.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/open.png", wx.BITMAP_TYPE_ANY ))
+		self.open.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/open1.png", wx.BITMAP_TYPE_ANY ))
 		open.Add(self.open, 1, wx.ALL|wx.EXPAND, 5)
 		self.open.Bind(wx.EVT_BUTTON, self.onOpenClick)
 
 		self.new = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
 
 		self.new.SetDefault()
-		self.new.SetBitmap(wx.Bitmap( u"../src/image/icon_packs/classic/new.png", wx.BITMAP_TYPE_ANY ))
-		self.new.SetBitmapPressed(wx.Bitmap( u"../src/image/icon_packs/classic/new1.png", wx.BITMAP_TYPE_ANY ))
+		self.new.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/new.png", wx.BITMAP_TYPE_ANY ))
+		self.new.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/new1.png", wx.BITMAP_TYPE_ANY ))
 		self.new.Bind(wx.EVT_BUTTON, self.onNewClick)
 		open.Add(self.new, 1, wx.ALL|wx.EXPAND, 5)
 
