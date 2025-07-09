@@ -31,7 +31,7 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --noconfirm --clean --windowed src/main.py \
+          pyinstaller --noconfirm --clean --windowed --onefile src/main.py \
             --add-data "src/json;json" \
             --add-data "src/image;image" \
             --add-data "src/image/icon_packs/classic;image/icon_packs/classic" \
@@ -42,7 +42,7 @@ jobs:
       - name: Move executable to dist root
         run: |
           mkdir upload
-          cp -r dist/main/main.exe upload/
+          cp dist/main.exe upload/
         shell: bash
 
       - name: Upload artifact
