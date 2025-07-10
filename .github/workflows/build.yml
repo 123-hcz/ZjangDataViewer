@@ -1,4 +1,4 @@
-name: Build and Package Python App
+name: Build and Package Python App 
 
 on:
   push:
@@ -9,11 +9,10 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     strategy:
       matrix:
-        os: [windows-latest]
-        python-version: [3.9]
+        python-version: ['3.8.x']
 
     steps:
       - uses: actions/checkout@v4
@@ -27,31 +26,29 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller
+          pip install pyinstaller==4.10  
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --noconfirm --clean --windowed --onefile src/main.py \
-            --add-data "src/json;json" \
-            --add-data "src/image;image" \
-            --add-data "src/image/icon_packs/classic;image/icon_packs/classic" \
-            --add-data "src/language;language" \
-            --icon "src/image/icon_packs/classic/123Excel II.ico"
-        shell: bash
+          pyinstaller --noconfirm --clean --windowed --onefile src/main.py `
+            --add-data "src/json;json" `
+            --add-data "src/image;image" `
+            --add-data "src/image/icon_packs/classic;image/icon_packs/classic" `
+            --add-data "src/language;language" `
+            --icon "src/image/icon_packs/classic/123Excel II.ico" `
+            --target-arch=32bit
 
       - name: Move exe to src and prepare release folder
         run: |
-          mv dist/main.exe src/
-          mv src release
-        shell: bash
+          Move-Item -Path "dist/main.exe" -Destination "src/"
+          Move-Item -Path "src" -Destination "release"
 
       - name: Zip release folder
         run: |
-          7z a release.zip ./release/*
-        shell: bash
+          Compress-Archive -Path "release/*" -DestinationPath "release.zip"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ZjangDataViewer-win
+          name: ZjangDataViewer
           path: release.zip
