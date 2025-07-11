@@ -17,7 +17,7 @@ def load_json(file_path):
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File '{file_path}' does not exist.")
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         return json.load(file)
     return json.loads(file_path)
 def save_json(file_path, data):
