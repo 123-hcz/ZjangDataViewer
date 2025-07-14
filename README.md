@@ -15,6 +15,6 @@
 
 [github下载](https://github.com/123-hcz/ZjangDataViewer/releases)
 
-[gitee下载](https://gitee.com/hcz-123/ZjangDataViewer/releases)
+[gitee下载（只有Windows）](https://gitee.com/hcz-123/ZjangDataViewer/releases)
 
 
