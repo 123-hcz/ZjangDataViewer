@@ -1,0 +1,26 @@
+name: Sync to ZjangDataViewer
+
+on:
+  push:
+    branches:
+      - master
+  delete:
+  create:
+
+jobs:
+  sync:
+    if: github.repository == 'Huchangzhi/123data'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mirror to ZjangDataViewer
+        env:
+          TARGET_REPO: 'https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/123-hcz/ZjangDataViewer.git'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote add mirror "$TARGET_REPO"
+          git push --mirror mirror
