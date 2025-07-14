@@ -20,7 +20,7 @@ jobs:
         env:
           TARGET_REPO: 'https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/123-hcz/ZjangDataViewer.git'
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name 'huchangzhi'
+          git config --global user.email 'hcz1017@outlook.com'
           git remote add mirror "$TARGET_REPO"
           git push --mirror mirror
