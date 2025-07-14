@@ -9,10 +9,21 @@
 
 import wx
 import wx.xrc
+import webbrowser
+import os
 
 import gettext
 from excelPage import excelPage_ # 下一个类
 import pandas as pd
+
+def read_version_from_file(filepath="version.txt"):
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return "版本信息未找到"
+    except Exception as e:
+        return f"读取版本信息出错: {e}"
 
 _ = gettext.gettext
 
@@ -23,7 +34,7 @@ _ = gettext.gettext
 class openFilePage ( wx.Frame ):
 
 	def __init__(self, parent ):
-		wx.Frame.__init__ (self, parent, id = wx.ID_ANY, title = "123Excel II" , pos = wx.DefaultPosition, size = wx.Size( 682,463 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL)
+		wx.Frame.__init__ (self, parent, id = wx.ID_ANY, title = "123Excel II" , pos = wx.DefaultPosition, size = wx.Size( 750,663 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL)
 
 		self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 		self.SetBackgroundColour(wx.Colour( 255,255,255 ))
@@ -61,6 +72,13 @@ class openFilePage ( wx.Frame ):
 		self.new.Bind(wx.EVT_BUTTON, self.onNewClick)
 		open.Add(self.new, 1, wx.ALL|wx.EXPAND, 5)
 
+		version = read_version_from_file()
+		self.versionText = wx.StaticText(self, wx.ID_ANY, _(version), wx.DefaultPosition, wx.DefaultSize, 0)
+		open.Add(self.versionText, 0, wx.ALL, 5)
+
+		self.updateButton = wx.Button(self, wx.ID_ANY, _(u"检查更新"), wx.DefaultPosition, wx.DefaultSize, 0)
+		open.Add(self.updateButton, 0, wx.ALL, 5)
+		self.updateButton.Bind(wx.EVT_BUTTON, self.OnUpdate)
 
 		main.Add(open, 1, wx.EXPAND, 5)
 
@@ -110,6 +128,9 @@ class openFilePage ( wx.Frame ):
 			self.Close()
 
 		dialog.Destroy()
+
+	def OnUpdate(self, event):
+		webbrowser.open("https://github.com/123-hcz/ZjangDataViewer/releases")
 
 	def __del__( self ):
 		pass
