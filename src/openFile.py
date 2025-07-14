@@ -11,6 +11,8 @@ import wx
 import wx.xrc
 import webbrowser
 import os
+import requests
+import threading
 
 import gettext
 from excelPage import excelPage_ # 下一个类
@@ -19,11 +21,63 @@ import pandas as pd
 def read_version_from_file(filepath="version.txt"):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
-            return f.read().strip()
+            version = f.read().strip()
+            print(f"[日志] 本地版本: {version}")
+            return version
     except FileNotFoundError:
+        print("[日志] 未找到本地版本文件")
         return "版本信息未找到"
     except Exception as e:
+        print(f"[日志] 读取版本信息出错: {e}")
         return f"读取版本信息出错: {e}"
+
+def fetch_latest_lts_version():
+    url = "https://api.github.com/repos/123-hcz/ZjangDataViewer/releases"
+    try:
+        print("[日志] 正在请求 GitHub Releases API...")
+        resp = requests.get(url, timeout=5, verify=False)
+        print("[警告] SSL 校验证书被忽略，建议修复本地 Python 证书环境！")
+        if resp.status_code == 200:
+            releases = resp.json()
+            if releases:
+                latest = releases[0]
+                print(f"[日志] 获取到最新版本: {latest['tag_name']}")
+                return latest["tag_name"]
+            print("[日志] 未找到任何版本")
+            return None
+        else:
+            print(f"[日志] GitHub API 请求失败: {resp.status_code}")
+            return None
+    except Exception as e:
+        print(f"[日志] 获取版本出错: {e}")
+        return None
+
+def check_update_and_prompt(frame, local_version):
+    def _check():
+        latest_lts = fetch_latest_lts_version()
+        if latest_lts is None:
+            print("[日志] 未能获取 LTS 版本，跳过自动升级提示")
+            return
+        if local_version != latest_lts:
+            print(f"[日志] 检测到新版本: {latest_lts}，本地为: {local_version}，准备弹窗提示用户")
+            def ask_update():
+                dlg = wx.MessageDialog(
+                    frame,
+                    f"检测到新版本：{latest_lts}\n当前版本：{local_version}\n是否前往下载页面？",
+                    "发现新版本",
+                    wx.YES_NO | wx.ICON_QUESTION
+                )
+                result = dlg.ShowModal()
+                dlg.Destroy()
+                if result == wx.ID_YES:
+                    print("[日志] 用户选择升级，打开下载页面")
+                    webbrowser.open("https://github.com/123-hcz/ZjangDataViewer/releases")
+                else:
+                    print("[日志] 用户选择暂不升级")
+            wx.CallAfter(ask_update)
+        else:
+            print("[日志] 当前已是最新版本")
+    threading.Thread(target=_check, daemon=True).start()
 
 _ = gettext.gettext
 
@@ -76,17 +130,16 @@ class openFilePage ( wx.Frame ):
 		self.versionText = wx.StaticText(self, wx.ID_ANY, _(version), wx.DefaultPosition, wx.DefaultSize, 0)
 		open.Add(self.versionText, 0, wx.ALL, 5)
 
-		self.updateButton = wx.Button(self, wx.ID_ANY, _(u"检查更新"), wx.DefaultPosition, wx.DefaultSize, 0)
-		open.Add(self.updateButton, 0, wx.ALL, 5)
-		self.updateButton.Bind(wx.EVT_BUTTON, self.OnUpdate)
-
 		main.Add(open, 1, wx.EXPAND, 5)
-
 
 		self.SetSizer( main )
 		self.Layout()
 
 		self.Centre(wx.BOTH)
+
+		# 自动检查 LTS 版本
+		check_update_and_prompt(self, version)
+
 	def getSelectedPath(self):
 		return self.pathBox.GetPath()
 
@@ -128,9 +181,6 @@ class openFilePage ( wx.Frame ):
 			self.Close()
 
 		dialog.Destroy()
-
-	def OnUpdate(self, event):
-		webbrowser.open("https://github.com/123-hcz/ZjangDataViewer/releases")
 
 	def __del__( self ):
 		pass
