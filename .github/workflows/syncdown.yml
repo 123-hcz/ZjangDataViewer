@@ -1,4 +1,4 @@
-name: Sync to ZjangDataViewer
+name: Sync Down to ZjangDataViewer
 
 on:
   push:
