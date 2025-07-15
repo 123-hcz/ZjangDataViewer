@@ -13,6 +13,8 @@ import wx.dataview
 import json
 
 import gettext
+
+
 _ = gettext.gettext
 
 #--------------------------------------------------------------------------
@@ -23,19 +25,18 @@ def load_json(file_path):
 		return json.load(file)
 
 class MyFrame1 ( wx.Frame ):
-
-
-	def add_json_to_tree(self, tree, parent_item, data):
+	def addItemsToTree(self, parent_item, data):
+		print(type(data))
 		if isinstance(data, dict):
-			for key, value in data.items():
-				item = tree.AppendItem(parent_item, str(key))
-				self.add_json_to_tree(tree, item, value)
-		elif isinstance(data, list):
-			for index, value in enumerate(data):
-				item = tree.AppendItem(parent_item, f"[{index}]")
-				self.add_json_to_tree(tree, item, value)
-		else:
-			tree.AppendItem(parent_item, str(data))
+			for i in data.items():
+				print(i)
+				print(type(i))
+				childItem = self.tree.AppendItem(parent_item, str(i[0]))
+				self.tree.AppendItem(childItem, str(i[1]))
+		# if isinstance(data, str):
+		#
+		# 		item = self.tree.AppendItem(parent_item, str(i))
+		# 		self.addItemsToTree(item, str(data[i]))
 
 	def __init__(self, parent ,path = '_json/options.json'):
 		wx.Frame.__init__ (self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 723,579 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL)
@@ -96,9 +97,10 @@ class MyFrame1 ( wx.Frame ):
 		self.Centre(wx.BOTH)
 
 		data = load_json(path)
-		root = self.tree.AppendItem(wx.dataview.NullDataViewItem, "Root")
-		self.add_json_to_tree(self.tree, root, data)
+		print(data)
 
+		root = self.tree.AppendItem(wx.dataview.NullDataViewItem, f'{path}')
+		self.addItemsToTree(root, data)
 	def __del__( self ):
 		pass
 

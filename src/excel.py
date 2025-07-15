@@ -4,7 +4,7 @@ import random
 import xml.etree.ElementTree as et
 import zipfile
 import os
-import _json
+import json
 import decimal
 import pandas as pd
 import openpyxl
@@ -14,7 +14,7 @@ def readConfig():
     #     return  _json.load(f)
     # 获取当前文件所在目录，并定位到 _json/options._json
     current_dir = os.path.dirname(__file__)  # 获取当前文件所在路径
-    config_path = os.path.join(current_dir, "_json", "options._json")
+    config_path = os.path.join(current_dir, "_json", "options.json")
 
     with open(config_path, "r", encoding="utf-8") as f:
         return json.load(f)
