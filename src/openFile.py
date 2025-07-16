@@ -71,7 +71,7 @@ def check_update_and_prompt(frame, local_version):
                 dlg.Destroy()
                 if result == wx.ID_YES:
                     print("[日志] 用户选择升级，打开下载页面")
-                    webbrowser.open("https://github.com/123-hcz/ZjangDataViewer/releases")
+                    webbrowser.open("https://gitee.com/hcz-123/ZjangDataViewer/releases")
                 else:
                     print("[日志] 用户选择暂不升级")
             wx.CallAfter(ask_update)
