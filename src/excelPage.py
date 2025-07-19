@@ -81,7 +81,7 @@ class AIChatFrame(wx.Frame):
 		wx.CallAfter(self.history_ctrl.AppendText, "AI:\n")
 
 		api_url = "https://api.suanli.cn/v1/chat/completions"
-		api_key = "sk-W0rpStc95T7JVYVwDYc29IyirjtpPPby6SozFMQr17m8KWeo"
+		api_key = "sk-OTi0r196VHjX2iMgNaPevYrXSP4VKO4s2coOjIyPdXq02okY"
 		headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
 
 		grid_data = self.parent.get_data_for_saving()
@@ -94,16 +94,16 @@ class AIChatFrame(wx.Frame):
 </data>
 请根据我的要求进行对话或操作。
 如果需要修改表格，请在你的回答中包含一个用```xml ... ```包围的、完整的、新的表格XML代码块。
-XML的格式必须是，一定要是 <root><row><col>...</col></row>...</root>。
+XML的格式必须是 <root><row><col>...</col></row>...</root>，不要有<data>标签。
 如果没有修改表格，就正常聊天，不要输出XML。
 """
 		
 		messages_to_send = [{"role": "system", "content": system_prompt}] + self.conversation_history
-		payload = {"model": "free:Qwen3-30B-A3B", "messages": messages_to_send, "stream": True}
+		payload = {"model": "Qwen3-32B", "messages": messages_to_send, "stream": True}
 
 		full_response_content = ""
 		try:
-			with requests.post(api_url, headers=headers, json=payload, stream=True, timeout=60) as response:
+			with requests.post(api_url, headers=headers, json=payload, stream=True, timeout=300) as response:
 				response.raise_for_status()
 				for chunk in response.iter_lines():
 					if self.is_destroyed: break
@@ -142,14 +142,20 @@ XML的格式必须是，一定要是 <root><row><col>...</col></row>...</root>�
 		self.conversation_history.append({"role": "assistant", "content": full_response})
 		self.update_history_text("\n\n")
 
+		xml_string = None
 		match = re.search(r'```xml\s*([\s\S]+?)\s*```', full_response, re.DOTALL)
 		if match:
 			xml_string = match.group(1).strip()
-			if xml_string.startswith('<root>') and xml_string.endswith('</root>'):
-				new_data = e.xml_string_to_data(xml_string)
-				if new_data is not None:
-					wx.CallAfter(self.parent.update_grid_with_data, new_data)
-					self.update_history_text("[提示]: 已根据AI的回复更新表格内容。\n\n", wx.RED)
+		else:
+			stripped_response = full_response.strip()
+			if stripped_response.startswith('<root>') and stripped_response.endswith('</root>'):
+				xml_string = stripped_response
+		
+		if xml_string:
+			new_data = e.xml_string_to_data(xml_string)
+			if new_data is not None:
+				wx.CallAfter(self.parent.update_grid_with_data, new_data)
+				self.update_history_text("[提示]: 已根据AI的回复更新表格内容。\n\n", wx.RED)
 
 		self.send_button.Enable()
 		self.input_ctrl.Enable()
@@ -166,6 +172,7 @@ class excelPage_ ( wx.Frame ):
 						   style = wx.DEFAULT_FRAME_STYLE|wx.BORDER_NONE|wx.TAB_TRAVERSAL
 							)
 		self.path = path
+		# --- 修正点 1 ---
 		self.file_type = os.path.splitext(path)[1].lower()
 		self.ai_chat_frame = None
 		self.Maximize()
@@ -244,7 +251,7 @@ class excelPage_ ( wx.Frame ):
 		self.getCustomize = wx.BitmapButton(self, wx.ID_ANY, wx.Bitmap( u"./image/icon_packs/classic/customize.png", wx.BITMAP_TYPE_ANY ))
 		self.getCustomize.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/customize1.png", wx.BITMAP_TYPE_ANY ))
 		self.getCustomize.Hide()
-		self.getCustomize.SetToolTip(_(u"自定义准则，挑选符合准准的项"))
+		self.getCustomize.SetToolTip(_(u"自定义准则，挑选符合准则的项"))
 		tools.Add(self.getCustomize, 0, 0, 5)
 
 		self.customizeInput = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
@@ -347,8 +354,7 @@ x>=100 # x-100:
 		grid_sizer = wx.BoxSizer(wx.HORIZONTAL)
 		self.mainGrid = wx.grid.Grid(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
 		
-		# 初次创建Grid，之后只修改
-		self.mainGrid.CreateGrid(0, 0) # 创建一个0x0的Grid，后续由update_grid_with_data填充
+		self.mainGrid.CreateGrid(0, 0)
 		data = []
 		try:
 			if self.file_type == '.xlsx':
@@ -362,7 +368,7 @@ x>=100 # x-100:
 			self.update_grid_with_data(data)
 		except Exception as err:
 			wx.MessageBox(f"打开文件时出错: {err}", "错误", wx.OK | wx.ICON_ERROR)
-			self.update_grid_with_data([]) # 出错时显示空表格
+			self.update_grid_with_data([])
 
 		self.mainGrid.EnableEditing(True)
 		self.mainGrid.EnableGridLines(True)
@@ -416,32 +422,25 @@ x>=100 # x-100:
 			self.ai_chat_frame.Raise()
 
 	def update_grid_with_data(self, data):
-		"""(最终修复版) 稳定、可靠地更新表格"""
 		self.mainGrid.BeginBatch()
 		try:
-			# 1. 计算新数据所需尺寸和用于显示的Grid目标尺寸
 			data_rows = len(data) if data else 0
 			data_cols = max(len(row) for row in data) if data_rows > 0 else 0
 			
-			# 保证总有富余空间，且至少为 100x50
 			target_rows = max(data_rows + 50, 100)
 			target_cols = max(data_cols + 20, 50)
 			
-			# 2. 获取当前Grid尺寸并调整
 			current_rows = self.mainGrid.GetNumberRows()
 			current_cols = self.mainGrid.GetNumberCols()
 			
-			# 调整行
 			row_diff = target_rows - current_rows
 			if row_diff > 0: self.mainGrid.AppendRows(row_diff)
 			elif row_diff < 0: self.mainGrid.DeleteRows(target_rows, -row_diff)
 
-			# 调整列
 			col_diff = target_cols - current_cols
 			if col_diff > 0: self.mainGrid.AppendCols(col_diff)
 			elif col_diff < 0: self.mainGrid.DeleteCols(target_cols, -col_diff)
 
-			# 3. 清空数据并填充
 			self.mainGrid.ClearGrid()
 			if data_rows > 0:
 				for i, row_data in enumerate(data):
@@ -496,6 +495,7 @@ x>=100 # x-100:
 				new_path += '.xlsx'
 			elif filter_index == 1 and not new_path.lower().endswith('.xml'):
 				new_path += '.xml'
+			# --- 修正点 2 ---
 			new_file_type = os.path.splitext(new_path)[1].lower()
 			try:
 				data = self.get_data_for_saving()
