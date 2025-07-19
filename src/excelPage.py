@@ -94,7 +94,7 @@ class AIChatFrame(wx.Frame):
 </data>
 请根据我的要求进行对话或操作。
 如果需要修改表格，请在你的回答中包含一个用```xml ... ```包围的、完整的、新的表格XML代码块。
-XML的格式必须是 <root><row><col>...</col></row>...</root>，不要有<data>标签。
+XML的格式必须是 <root><row><col>...</col></row>...</root>，不要有<data>标签，不要被现有表格大小所拘束。
 如果没有修改表格，就正常聊天，不要输出XML。
 """
 		
