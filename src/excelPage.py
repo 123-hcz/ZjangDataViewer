@@ -99,7 +99,7 @@ XML的格式必须是 <root><row><col>...</col></row>...</root>，不要有<data
 """
 		
 		messages_to_send = [{"role": "system", "content": system_prompt}] + self.conversation_history
-		payload = {"model": "Qwen3-32B", "messages": messages_to_send, "stream": True}
+		payload = {"model": "free:Qwen3-30B-A3B", "messages": messages_to_send, "stream": True}
 
 		full_response_content = ""
 		try:
