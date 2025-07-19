@@ -1,3 +1,5 @@
+# openFile.py
+
 # -*- coding: utf-8 -*-
 
 #--------------------------------------------------------------------------
@@ -17,6 +19,7 @@ import threading
 import gettext
 from excelPage import excelPage_ # 下一个类
 import pandas as pd
+import excel as e # 导入excel模块以便创建新XML文件
 
 def read_version_from_file(filepath="version.txt"):
     try:
@@ -27,16 +30,15 @@ def read_version_from_file(filepath="version.txt"):
     except FileNotFoundError:
         print("[日志] 未找到本地版本文件")
         return "版本信息未找到"
-    except Exception as e:
-        print(f"[日志] 读取版本信息出错: {e}")
-        return f"读取版本信息出错: {e}"
+    except Exception as exc:
+        print(f"[日志] 读取版本信息出错: {exc}")
+        return f"读取版本信息出错: {exc}"
 
 def fetch_latest_lts_version():
     url = "https://api.github.com/repos/123-hcz/ZjangDataViewer/releases"
     try:
         print("[日志] 正在请求 GitHub Releases API...")
-        resp = requests.get(url, timeout=5, verify=False)
-        print("[警告] SSL 校验证书被忽略，建议修复本地 Python 证书环境！")
+        resp = requests.get(url, timeout=10)
         if resp.status_code == 200:
             releases = resp.json()
             if releases:
@@ -48,8 +50,8 @@ def fetch_latest_lts_version():
         else:
             print(f"[日志] GitHub API 请求失败: {resp.status_code}")
             return None
-    except Exception as e:
-        print(f"[日志] 获取版本出错: {e}")
+    except Exception as exc:
+        print(f"[日志] 获取版本出错: {exc}")
         return None
 
 def check_update_and_prompt(frame, local_version):
@@ -88,7 +90,7 @@ _ = gettext.gettext
 class openFilePage ( wx.Frame ):
 
 	def __init__(self, parent ):
-		wx.Frame.__init__ (self, parent, id = wx.ID_ANY, title = "123Excel II" , pos = wx.DefaultPosition, size = wx.Size( 750,663 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL)
+		wx.Frame.__init__ (self, parent, id = wx.ID_ANY, title = "123Excel II" , pos = wx.DefaultPosition, size = wx.Size( 950,663 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL)
 
 		self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 		self.SetBackgroundColour(wx.Colour( 255,255,255 ))
@@ -98,95 +100,117 @@ class openFilePage ( wx.Frame ):
 		path = wx.BoxSizer(wx.VERTICAL)
 
 		self.m_dirPicker3 = wx.DirPickerCtrl(self, wx.ID_ANY, wx.EmptyString, _(u"选择文件夹"), wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE|wx.DIRP_SMALL)
-		path.Add(self.m_dirPicker3, 0, 0, 5)
+		path.Add(self.m_dirPicker3, 0, wx.EXPAND|wx.ALL, 5) # 使用EXPAND以确保宽度一致
 
-		self.pathBox = wx.GenericDirCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.DIRCTRL_3D_INTERNAL | wx.SUNKEN_BORDER, wx.EmptyString, 0)
-
+		self.pathBox = wx.GenericDirCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_SHOW_FILTERS | wx.SUNKEN_BORDER, "Excel & XML 文件 (*.xlsx;*.xml)|*.xlsx;*.xml", 0)
 		self.pathBox.ShowHidden(False)
 		self.pathBox.Bind(wx.EVT_DIRCTRL_SELECTIONCHANGED, self.getPath)
-		path.Add(self.pathBox, 1, wx.EXPAND | wx.BOTTOM, 5)
+		self.pathBox.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.onFileActivated)
+		path.Add(self.pathBox, 1, wx.EXPAND | wx.ALL, 5)
 
 
-		main.Add(path, 0, wx.EXPAND, 5)
+		# 修正：将path（路径框）的比例设为1，使其可以自由伸展
+		main.Add(path, 1, wx.EXPAND, 5)
 
-		open = wx.BoxSizer(wx.VERTICAL)
+		open_sizer = wx.BoxSizer(wx.VERTICAL)
 
-		self.open = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
-
-		self.open.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/open.png", wx.BITMAP_TYPE_ANY ))
+		self.open = wx.BitmapButton(self, wx.ID_ANY, wx.Bitmap( u"./image/icon_packs/classic/open.png", wx.BITMAP_TYPE_ANY ))
 		self.open.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/open1.png", wx.BITMAP_TYPE_ANY ))
-		open.Add(self.open, 1, wx.ALL|wx.EXPAND, 5)
 		self.open.Bind(wx.EVT_BUTTON, self.onOpenClick)
+		open_sizer.Add(self.open, 1, wx.ALL|wx.EXPAND, 5)
 
-		self.new = wx.BitmapButton(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW|0)
-
+		self.new = wx.BitmapButton(self, wx.ID_ANY, wx.Bitmap( u"./image/icon_packs/classic/new.png", wx.BITMAP_TYPE_ANY ))
 		self.new.SetDefault()
-		self.new.SetBitmap(wx.Bitmap( u"./image/icon_packs/classic/new.png", wx.BITMAP_TYPE_ANY ))
 		self.new.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/new1.png", wx.BITMAP_TYPE_ANY ))
 		self.new.Bind(wx.EVT_BUTTON, self.onNewClick)
-		open.Add(self.new, 1, wx.ALL|wx.EXPAND, 5)
+		open_sizer.Add(self.new, 1, wx.ALL|wx.EXPAND, 5)
 
 		version = read_version_from_file()
-		self.versionText = wx.StaticText(self, wx.ID_ANY, _(version), wx.DefaultPosition, wx.DefaultSize, 0)
-		open.Add(self.versionText, 0, wx.ALL, 5)
+		self.versionText = wx.StaticText(self, wx.ID_ANY, _(version), wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL)
+		open_sizer.Add(self.versionText, 0, wx.ALL|wx.EXPAND, 5)
 
-		main.Add(open, 1, wx.EXPAND, 5)
+		# 修正：将open_sizer（按钮区）的比例设为0，使其保持最小宽度，不再被拉伸
+		main.Add(open_sizer, 0, wx.EXPAND, 5)
 
 		self.SetSizer( main )
 		self.Layout()
 
 		self.Centre(wx.BOTH)
 
-		# 自动检查 LTS 版本
 		check_update_and_prompt(self, version)
-
-	def getSelectedPath(self):
-		return self.pathBox.GetPath()
 
 	def getPath(self, event):
 		self.path = self.pathBox.GetPath()
-		self.m_dirPicker3.SetPath(self.path)
-		print(f'当前路径: {self.path}')
+		if os.path.isdir(self.path):
+			self.m_dirPicker3.SetPath(self.path)
+		else:
+			self.m_dirPicker3.SetPath(os.path.dirname(self.path))
+		event.Skip()
+
+	def onFileActivated(self, event):
+		self.onOpenClick(event)
+		event.Skip()
+
 	def onOpenClick(self, event):
-		selected_path = self.m_dirPicker3.GetPath()
+		selected_path = self.pathBox.GetPath()
+
+		if not selected_path or not os.path.isfile(selected_path):
+			wx.MessageBox("请选择一个有效的文件。", "提示", wx.OK | wx.ICON_INFORMATION)
+			return
+
+		file_ext = os.path.splitext(selected_path)[1].lower()
+		if file_ext not in ['.xlsx', '.xml']:
+			wx.MessageBox("不支持的文件类型。请选择一个 .xlsx 或 .xml 文件。", "错误", wx.OK | wx.ICON_ERROR)
+			return
+
 		print("用户选择了路径:", selected_path)
 		nextPage = excelPage_(parent=None, path=selected_path)
 		nextPage.Show()
 		self.Close()
+		event.Skip()
 
 	def onNewClick(self, event):
-		# 显示“另存为”对话框，让用户选择路径和输入文件名
 		dialog = wx.FileDialog(
 			self,
-			message="保存新文件",
+			message="创建新文件",
 			defaultDir=wx.GetHomeDir(),
-			defaultFile="新建表格.xlsx",
-			wildcard="Excel 文件 (*.xlsx)|*.xlsx",
+			defaultFile="新建文件",
+			wildcard="Excel 文件 (*.xlsx)|*.xlsx|XML 文件 (*.xml)|*.xml",
 			style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
 		)
 
 		if dialog.ShowModal() == wx.ID_OK:
 			file_path = dialog.GetPath()
+			filter_index = dialog.GetFilterIndex()
 
-			# 如果没有 .xlsx 后缀，自动添加
-			if not file_path.endswith(".xlsx"):
-				file_path += ".xlsx"
+			if filter_index == 0 and not file_path.lower().endswith('.xlsx'):
+				file_path += '.xlsx'
+			elif filter_index == 1 and not file_path.lower().endswith('.xml'):
+				file_path += '.xml'
 
-			# 创建一个空的 Excel 文件（使用 pandas）
-			pd.DataFrame().to_excel(file_path, index=False)
+			file_ext = os.path.splitext(file_path)[1].lower()
 
-			# 打开 excel 编辑页面
-			nextPage = excelPage_(parent=None, path=file_path)
-			nextPage.Show()
-			self.Close()
+			try:
+				if file_ext == ".xlsx":
+					pd.DataFrame().to_excel(file_path, index=False)
+				elif file_ext == ".xml":
+					e.write_to_xml([], file_path)
+				else:
+					wx.MessageBox("未知的文件类型。", "错误", wx.OK | wx.ICON_ERROR)
+					dialog.Destroy()
+					return
+
+				nextPage = excelPage_(parent=None, path=file_path)
+				nextPage.Show()
+				self.Close()
+			except Exception as err:
+				wx.MessageBox(f"创建新文件时出错: {err}", "错误", wx.OK | wx.ICON_ERROR)
 
 		dialog.Destroy()
+		event.Skip()
 
 	def __del__( self ):
 		pass
-
-
-
 
 if __name__ == '__main__':
 	app = wx.App()
