@@ -102,7 +102,7 @@ class openFilePage ( wx.Frame ):
 		self.m_dirPicker3 = wx.DirPickerCtrl(self, wx.ID_ANY, wx.EmptyString, _(u"选择文件夹"), wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE|wx.DIRP_SMALL)
 		path.Add(self.m_dirPicker3, 0, wx.EXPAND|wx.ALL, 5) # 使用EXPAND以确保宽度一致
 
-		self.pathBox = wx.GenericDirCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_SHOW_FILTERS | wx.SUNKEN_BORDER, "Excel & XML 文件 (*.xlsx;*.xml)|*.xlsx;*.xml", 0)
+		self.pathBox = wx.GenericDirCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_SHOW_FILTERS | wx.SUNKEN_BORDER, "Excel & XML & JSON 文件 (*.xlsx;*.xml;*.json)|*.xlsx;*.xml;*.json", 0)
 		self.pathBox.ShowHidden(False)
 		self.pathBox.Bind(wx.EVT_DIRCTRL_SELECTIONCHANGED, self.getPath)
 		self.pathBox.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.onFileActivated)
@@ -113,6 +113,10 @@ class openFilePage ( wx.Frame ):
 		main.Add(path, 1, wx.EXPAND, 5)
 
 		open_sizer = wx.BoxSizer(wx.VERTICAL)
+
+		self.readMode = wx.Choice(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, [_(u"以二维表格形式阅读"), _(u"以树状结构阅读[正在开发]")], 0)
+		self.readMode.SetSelection(0)
+		open_sizer.Add(self.readMode, 1, wx.ALL | wx.EXPAND, 5)
 
 		self.open = wx.BitmapButton(self, wx.ID_ANY, wx.Bitmap( u"./image/icon_packs/classic/open.png", wx.BITMAP_TYPE_ANY ))
 		self.open.SetBitmapPressed(wx.Bitmap( u"./image/icon_packs/classic/open1.png", wx.BITMAP_TYPE_ANY ))
@@ -159,8 +163,8 @@ class openFilePage ( wx.Frame ):
 			return
 
 		file_ext = os.path.splitext(selected_path)[1].lower()
-		if file_ext not in ['.xlsx', '.xml']:
-			wx.MessageBox("不支持的文件类型。请选择一个 .xlsx 或 .xml 文件。", "错误", wx.OK | wx.ICON_ERROR)
+		if file_ext not in ['.xlsx', '.xml' ,'.json']:
+			wx.MessageBox("不支持的文件类型。请选择一个 .xlsx 或 .xml 或 .json 文件。", "错误", wx.OK | wx.ICON_ERROR)
 			return
 
 		print("用户选择了路径:", selected_path)
@@ -175,7 +179,7 @@ class openFilePage ( wx.Frame ):
 			message="创建新文件",
 			defaultDir=wx.GetHomeDir(),
 			defaultFile="新建文件",
-			wildcard="Excel 文件 (*.xlsx)|*.xlsx|XML 文件 (*.xml)|*.xml",
+			wildcard="Excel 文件 (*.xlsx)|*.xlsx|XML 文件 (*.xml)|*.xml|JSON 文件 (*.json)|*.json",
 			style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
 		)
 
