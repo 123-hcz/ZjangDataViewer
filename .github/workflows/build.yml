@@ -39,7 +39,7 @@ jobs:
       - name: Build executable with PyInstaller
         run: |
           pyinstaller --noconfirm --clean --windowed --onefile src/main.py `
-            --add-data "src/_json;json" `
+            --add-data "src/_json;_json" `
             --add-data "src/image;image" `
             --add-data "src/image/icon_packs/classic;image/icon_packs/classic" `
             --add-data "src/language;language" `
@@ -101,7 +101,7 @@ jobs:
       - name: Build executable with PyInstaller
         run: |
           pyinstaller --noconfirm --clean --windowed --onefile src/main.py \
-            --add-data "src/_json:json" \
+            --add-data "src/_json:_json" \
             --add-data "src/image:image" \
             --add-data "src/image/icon_packs/classic:image/icon_packs/classic" \
             --add-data "src/language:language" \
