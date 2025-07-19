@@ -1,23 +1,19 @@
+# excel.py
 
 import os
-import random
 import xml.etree.ElementTree as et
-import zipfile
-import os
+from xml.dom import minidom
 import json
 import decimal
 import pandas as pd
 import openpyxl
 
 def readConfig():
-    # with open("json/options.json","r",encoding = "utf-8") as f:
-    #     return  json.load(f)
-    # 获取当前文件所在目录，并定位到 json/options.json
-    current_dir = os.path.dirname(__file__)  # 获取当前文件所在路径
+    current_dir = os.path.dirname(__file__)
     config_path = os.path.join(current_dir, "json", "options.json")
-
     with open(config_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
 config = readConfig()
 
 RW = config["usingRoundWay"]
@@ -26,22 +22,38 @@ DPN = config["decimalPlaceNum"]
 
 def readExcel(excel_file:str,sheet:str):
     df = pd.read_excel(excel_file, sheet_name=sheet, header=None, engine='openpyxl')
-
-    # 将 DataFrame 转换为二维列表
     data = df.values.tolist()
     return data
 
+def readXml(file_path: str):
+    try:
+        tree = et.parse(file_path)
+        root = tree.getroot()
+        data = []
+        for row_elem in root.findall('row'):
+            row_data = []
+            for col_elem in row_elem.findall('col'):
+                row_data.append(col_elem.text if col_elem.text is not None else "")
+            data.append(row_data)
+        return data
+    except (et.ParseError, FileNotFoundError):
+        return []
+
 def getItems(Data:list,ItemRow:int):
     ItemRow -= 1
+    if not Data or len(Data) <= ItemRow:
+        return []
     return Data[ItemRow]
 
 def getNames(Data:list,ItemRow:int,NameCol:int):
     ItemRow -= 1
     NameCol -= 1
-    names = [ ]
+    names = []
     for i in Data:
-        names.append(i[NameCol])
-    del names[:ItemRow + 1]
+        if len(i) > NameCol:
+            names.append(i[NameCol])
+    if len(names) > ItemRow + 1:
+        del names[:ItemRow + 1]
     return names
 
 def getValue(Data:list,ItemRow:int,NameCol:int,ItemName:str):
@@ -49,179 +61,160 @@ def getValue(Data:list,ItemRow:int,NameCol:int,ItemName:str):
     ItemRow -= 1
     NameCol -= 1
     try:
+        if ItemName is None or ItemName not in items:
+            raise ValueError("项目名称未在项目中找到或是空的")
         itemIndex = items.index(ItemName)
-    except ValueError:
-        raise ValueError("ItemName not found in Item")
-        return None
-    values = [ ]
+    except ValueError as e:
+        raise e
+    values = []
     for i in Data:
-        values.append(i[itemIndex])
-    del values[:ItemRow + 1]
+        if len(i) > itemIndex:
+            values.append(i[itemIndex])
+    if len(values) > ItemRow + 1:
+        del values[:ItemRow + 1]
     return values
 
 def getNameValueDict(Names:list,Values:list):
-    NameValueDic = { }
-    for i in range(len(Values)):
+    NameValueDic = {}
+    min_len = min(len(Names), len(Values))
+    for i in range(min_len):
         NameValueDic[Names[i]] = Values[i]
     return NameValueDic
 
 def getMaxValue(NameValueDic:dict):
     Values = list(NameValueDic.values())
-    for i in range(len(Values)):
+    float_values = []
+    for v in Values:
         try:
-            Values[i] = float(Values[i])
-        except TypeError:
-            raise TypeError(f"{Values[i]} is not a float")
-        except ValueError:
-            raise ValueError(f"{Values[i]} is not a float")
-    return max(Values)
+            float_values.append(float(v))
+        except (ValueError, TypeError):
+            pass
+    if not float_values:
+        return None
+    return max(float_values)
 
 def getMaxNames(NameValueDic:dict,MaxNum:float):
+    if MaxNum is None:
+        return ["最大值：", "无有效数据"]
     Values = list(NameValueDic.values())
     Names = list(NameValueDic.keys())
     output = ["最大值："]
     for i in range(len(Values)):
-        if float(Values[i]) == MaxNum:
-            output.append(Names[i]+ " : " + str(Values[i]))
+        try:
+            if float(Values[i]) == MaxNum:
+                output.append(f"{Names[i]} : {Values[i]}")
+        except (ValueError, TypeError):
+            pass
     return output
-
 
 def getMinValue(NameValueDic:dict):
     Values = list(NameValueDic.values())
-    for i in range(len(Values)):
+    float_values = []
+    for v in Values:
         try:
-            Values[i] = float(Values[i])
-        except TypeError:
-            raise TypeError(f"{Values[i]} is not a float")
-        except ValueError:
-            raise ValueError(f"{Values[i]} is not a float")
-    return min(Values)
+            float_values.append(float(v))
+        except (ValueError, TypeError):
+            pass
+    if not float_values:
+        return None
+    return min(float_values)
 
 def getMinNames(NameValueDic:dict,MinNum:float):
+    if MinNum is None:
+        return ["最小值：", "无有效数据"]
     Values = list(NameValueDic.values())
     Names = list(NameValueDic.keys())
     output = ["最小值："]
     for i in range(len(Values)):
-        if float(Values[i]) == MinNum:
-            output.append(Names[i]+ " : " + str(Values[i]))
+        try:
+            if float(Values[i]) == MinNum:
+                output.append(f"{Names[i]} : {Values[i]}")
+        except (ValueError, TypeError):
+            pass
     return output
 
 def getCustomizeEquation(CustomizeRule:str,ReplaceVar):
-    CustomizeRule = list(CustomizeRule)
-    for i in range(len(CustomizeRule)):
-        if CustomizeRule[i] == "x":
-            CustomizeRule[i] = ReplaceVar
-    return  "".join(CustomizeRule)
-
-def getCustomizeCompute(NameValueDic:dict,CustomizeRule:str):
-    Computes = CustomizeRule.split("#")[1:]
-    for i in range(len(Computes)):
-        Computes[i] = eval(Computes[i])
-    return Computes
-
+    return CustomizeRule.replace('x', ReplaceVar)
 
 def getCustomizeValue(NameValueDic:dict,CustomizeRule:str):
-    if "#" in CustomizeRule:
-        CustomizeRuleToFloat = CustomizeRule.split("#")[1]
-        CustomizeRuleToBool = CustomizeRule.split("#")[0]
-    else:
-        CustomizeRuleToBool = CustomizeRule
-    satisfyNameValues = [ ]
+    satisfyNameValues = []
     Names = list(NameValueDic.keys())
     Values = list(NameValueDic.values())
-    if "#" in CustomizeRule:
-        for i in range(len(Values)):
-            if eval(CustomizeRuleToBool):
-                satisfyNameValues.append(f"{Names[i]} = {Values[i]} |{eval(CustomizeRuleToFloat)}")
+    has_compute_part = "#" in CustomizeRule
+    if has_compute_part:
+        parts = CustomizeRule.split("#", 1)
+        rule_bool_str = parts[0].strip()
+        rule_compute_str = parts[1].strip()
     else:
-        for i in range(len(Values)):
-            if eval(CustomizeRuleToBool):
-                satisfyNameValues.append(f"{Names[i]} = {Values[i]}")
+        rule_bool_str = CustomizeRule.strip()
+
+    for i, val in enumerate(Values):
+        if i >= len(Names): continue # 防止索引越界
+        try:
+            val_float = float(val)
+            context = {'x': val_float}
+            if eval(rule_bool_str, {}, context):
+                if has_compute_part:
+                    compute_result = eval(rule_compute_str, {}, context)
+                    satisfyNameValues.append(f"{Names[i]} = {val} | {compute_result}")
+                else:
+                    satisfyNameValues.append(f"{Names[i]} = {val}")
+        except (ValueError, TypeError, NameError, SyntaxError):
+            continue
     return satisfyNameValues
 
 def getAverageValue(NameValueDic:dict):
-    '''
-    ROUND_UP: 远离零方向舍入，即总是增加绝对值。
-    //向上取整
-
-    示例：Decimal('1.3').quantize(Decimal('1'), rounding=ROUND_UP) 结果为 2
-    示例：Decimal('-1.3').quantize(Decimal('1'), rounding=ROUND_UP) 结果为 -2
-
-    ROUND_DOWN: 靠近零方向舍入，即总是减少绝对值。
-    //向下取整
-
-        示例：Decimal('1.7').quantize(Decimal('1'), rounding=ROUND_DOWN) 结果为 1
-        示例：Decimal('-1.7').quantize(Decimal('1'), rounding=ROUND_DOWN) 结果为 -1
-
-    ROUND_CEILING: 向正无穷方向舍入，只对负数有效。[不必要]
-    //负数向上取整
-
-        示例：Decimal('-1.1').quantize(Decimal('1'), rounding=ROUND_CEILING) 结果为 -1
-
-    ROUND_FLOOR: 向负无穷方向舍入，只对正数有效。
-    //正数向下取整
-
-        示例：Decimal('1.1').quantize(Decimal('1'), rounding=ROUND_FLOOR) 结果为 1
-
-    ROUND_HALF_UP: 如果舍弃部分 >= 0.5，则向上舍入；否则向下舍入。
-    //四舍五入
-
-        示例：Decimal('1.5').quantize(Decimal('1'), rounding=ROUND_HALF_UP) 结果为 2
-        示例：Decimal('2.4').quantize(Decimal('1'), rounding=ROUND_HALF_UP) 结果为 2
-
-    ROUND_HALF_DOWN: 如果舍弃部分 > 0.5，则向上舍入；否则向下舍入。
-    //五舍六入
-
-        示例：Decimal('1.5').quantize(Decimal('1'), rounding=ROUND_HALF_DOWN) 结果为 2
-        示例：Decimal('2.5').quantize(Decimal('1'), rounding=ROUND_HALF_DOWN) 结果为 2
-
-    ROUND_HALF_EVEN: 银行家舍入法，如果舍弃部分 = 0.5，则选择最接近的偶数。
-    //银行家舍入
-
-    示例：Decimal('2.5').quantize(Decimal('1'), rounding=ROUND_HALF_EVEN) 结果为 2
-    示例：Decimal('3.5').quantize(Decimal('1'), rounding=ROUND_HALF_EVEN) 结果为 4
-    '''
     Values = list(NameValueDic.values())
-    sumA = 0
+    sumA = decimal.Decimal(0)
+    count = 0
     for i in Values:
         try:
-            addValue = decimal.Decimal(str(i))
-            sumA = decimal.Decimal(sumA + addValue)
-        except:
-            raise TypeError(f"{i} is not a float/int")
-    sumA = decimal.Decimal(str(sumA))
-    count = decimal.Decimal(str(len(Values)))
-    average = decimal.Decimal(sumA / count)
-    dpn = str(1 / (10 ** int(DPN)))
-    outputMessage =  [f":{average.quantize(decimal.Decimal(dpn), rounding=RW)}"]
-    return outputMessage
+            sumA += decimal.Decimal(str(i))
+            count += 1
+        except (decimal.InvalidOperation, TypeError, ValueError):
+            pass
+    if count == 0:
+        return [":无有效数据"]
+    average = sumA / decimal.Decimal(count)
+    dpn_str = '1e-' + str(DPN)
+    average_quantized = average.quantize(decimal.Decimal(dpn_str), rounding=RW)
+    return [f"平均值:{average_quantized}"]
 
 def findNames(NameValueDic:dict,Value:float):
-    names = [ ]
-
+    names = []
     for i in NameValueDic:
         try:
             if float(NameValueDic[i]) == Value:
                 names.append(i)
-        except TypeError:
-            raise TypeError(f"{NameValueDic[i]} is not a float")
-        except ValueError:
-            raise ValueError(f"{Value[i]} is not a float")
+        except (ValueError, TypeError):
+            pass
     return names
 
 def write_to_excel(data, filename):
     wb = openpyxl.Workbook()
     ws = wb.active
     for row in data:
-        ws.append(row)
+        clean_row = [cell if cell is not None else '' for cell in row]
+        ws.append(clean_row)
     wb.save(filename)
 
+def write_to_xml(data, filename):
+    root = et.Element("root")
+    for row_data in data:
+        row_elem = et.SubElement(root, "row")
+        for cell_data in row_data:
+            col_elem = et.SubElement(row_elem, "col")
+            col_elem.text = str(cell_data) if cell_data is not None else ""
+    xml_string = et.tostring(root, 'utf-8')
+    reparsed = minidom.parseString(xml_string)
+    pretty_xml = '\n'.join([line for line in reparsed.toprettyxml(indent="  ").split('\n') if line.strip()])
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(pretty_xml)
 
 if __name__ == "__main__":
-    excelValue = readExcel("D:\下载\8年级录分(1).xlsx","Sheet")
+    excelValue = readExcel("D:\\下载\\8年级录分(1).xlsx","Sheet")
     names = getNames(excelValue,1,3)
     values = getValue(excelValue,1,3,"语文")
     NameValueDic = getNameValueDict(names,values)
 
     print(getCustomizeValue(NameValueDic,getCustomizeEquation("x<=72 # x-72 # x-20 ","float(Values[i])")))
-    print(getCustomizeCompute(NameValueDic, getCustomizeEquation("x<=72 # x-72 # x-20 ", "float(Values[i])")))
