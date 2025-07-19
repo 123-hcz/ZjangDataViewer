@@ -1,5 +1,3 @@
-# excel.py
-
 import os
 import xml.etree.ElementTree as et
 from xml.dom import minidom
@@ -37,6 +35,20 @@ def readXml(file_path: str):
             data.append(row_data)
         return data
     except (et.ParseError, FileNotFoundError):
+        return []
+
+def xml_string_to_data(xml_string: str):
+    """从XML字符串解析数据为列表."""
+    try:
+        root = et.fromstring(xml_string)
+        data = []
+        for row_elem in root.findall('row'):
+            row_data = []
+            for col_elem in row_elem.findall('col'):
+                row_data.append(col_elem.text if col_elem.text is not None else "")
+            data.append(row_data)
+        return data
+    except et.ParseError:
         return []
 
 def getItems(Data:list,ItemRow:int):
@@ -210,6 +222,17 @@ def write_to_xml(data, filename):
     pretty_xml = '\n'.join([line for line in reparsed.toprettyxml(indent="  ").split('\n') if line.strip()])
     with open(filename, "w", encoding="utf-8") as f:
         f.write(pretty_xml)
+
+def data_to_xml_string(data: list):
+    """将列表数据转换为XML格式的字符串."""
+    root = et.Element("root")
+    for row_data in data:
+        row_elem = et.SubElement(root, "row")
+        for cell_data in row_data:
+            col_elem = et.SubElement(row_elem, "col")
+            col_elem.text = str(cell_data) if cell_data is not None else ""
+    return et.tostring(root, 'unicode')
+
 
 if __name__ == "__main__":
     excelValue = readExcel("D:\\下载\\8年级录分(1).xlsx","Sheet")
