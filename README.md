@@ -13,6 +13,7 @@
 
 [gitee下载（只有Windows版本）](https://gitee.com/hcz-123/ZjangDataViewer/releases)
 
+[web版本 beta](https://123-hcz.github.io/123excel-web/)
 ## 一个可视化读取和修改数据的程序
 
 
