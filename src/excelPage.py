@@ -22,7 +22,7 @@ import re
 _ = gettext.gettext
 
 # --------------------------------------------------------------------------
-#  AI 聊天窗口 (已稳定)
+#  AI 聊天窗口
 # --------------------------------------------------------------------------
 class AIChatFrame(wx.Frame):
 	def __init__(self, parent):
@@ -172,7 +172,6 @@ class excelPage_ ( wx.Frame ):
 						   style = wx.DEFAULT_FRAME_STYLE|wx.BORDER_NONE|wx.TAB_TRAVERSAL
 							)
 		self.path = path
-		# --- 修正点 1 ---
 		self.file_type = os.path.splitext(path)[1].lower()
 		self.ai_chat_frame = None
 		self.Maximize()
@@ -363,6 +362,8 @@ x>=100 # x-100:
 					data = e.readExcel(path, sheet_name)
 			elif self.file_type == '.xml':
 				data = e.readXml(path)
+			elif self.file_type == '.json':
+				data = e.readJson(path)
 			else:
 				wx.MessageBox("不支持的文件类型！", "错误", wx.OK | wx.ICON_ERROR)
 			self.update_grid_with_data(data)
@@ -477,6 +478,8 @@ x>=100 # x-100:
 				e.write_to_excel(data, self.path)
 			elif self.file_type == '.xml':
 				e.write_to_xml(data, self.path)
+			elif self.file_type == '.json':
+				e.write_to_json(data, self.path)
 			else:
 				wx.MessageBox("不支持的文件类型，无法保存。", "错误", wx.OK | wx.ICON_ERROR)
 				return
@@ -486,7 +489,7 @@ x>=100 # x-100:
 		if event: event.Skip()
 
 	def saveas_( self, event ):
-		wildcard = "Excel 文件 (*.xlsx)|*.xlsx|XML 文件 (*.xml)|*.xml"
+		wildcard = "Excel 文件 (*.xlsx)|*.xlsx|XML 文件 (*.xml)|*.xml|JSON 文件 (*.json)|*.json"
 		dialog = wx.FileDialog(self, "另存为", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		if dialog.ShowModal() == wx.ID_OK:
 			new_path = dialog.GetPath()
@@ -495,7 +498,9 @@ x>=100 # x-100:
 				new_path += '.xlsx'
 			elif filter_index == 1 and not new_path.lower().endswith('.xml'):
 				new_path += '.xml'
-			# --- 修正点 2 ---
+			elif filter_index == 2 and not new_path.lower().endswith('.json'):
+				new_path += '.json'
+
 			new_file_type = os.path.splitext(new_path)[1].lower()
 			try:
 				data = self.get_data_for_saving()
@@ -503,6 +508,8 @@ x>=100 # x-100:
 					e.write_to_excel(data, new_path)
 				elif new_file_type == '.xml':
 					e.write_to_xml(data, new_path)
+				elif new_file_type == '.json':
+					e.write_to_json(data, new_path)
 				else:
 					wx.MessageBox("不支持的文件类型。", "错误", wx.OK | wx.ICON_ERROR)
 					return
@@ -533,6 +540,8 @@ x>=100 # x-100:
 				return []
 			elif self.file_type == '.xml':
 				return e.readXml(self.path)
+			elif self.file_type == '.json':
+				return e.readJson(self.path)
 			return []
 		except Exception as err:
 			wx.MessageBox(f"读取数据时出错: {err}", "错误", wx.OK | wx.ICON_ERROR)

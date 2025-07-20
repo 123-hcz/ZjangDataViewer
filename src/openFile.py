@@ -1,5 +1,3 @@
-# openFile.py
-
 # -*- coding: utf-8 -*-
 
 #--------------------------------------------------------------------------
@@ -17,10 +15,9 @@ import requests
 import threading
 
 import gettext
-from excelPage import excelPage_ # 下一个类
+from excelPage import excelPage_ 
 import pandas as pd
-import excel as e # 导入excel模块以便创建新XML文件
-
+import excel as e
 def read_version_from_file(filepath="version.txt"):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -108,8 +105,6 @@ class openFilePage ( wx.Frame ):
 		self.pathBox.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.onFileActivated)
 		path.Add(self.pathBox, 1, wx.EXPAND | wx.ALL, 5)
 
-
-		# 修正：将path（路径框）的比例设为1，使其可以自由伸展
 		main.Add(path, 1, wx.EXPAND, 5)
 
 		open_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -133,7 +128,6 @@ class openFilePage ( wx.Frame ):
 		self.versionText = wx.StaticText(self, wx.ID_ANY, _(version), wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL)
 		open_sizer.Add(self.versionText, 0, wx.ALL|wx.EXPAND, 5)
 
-		# 修正：将open_sizer（按钮区）的比例设为0，使其保持最小宽度，不再被拉伸
 		main.Add(open_sizer, 0, wx.EXPAND, 5)
 
 		self.SetSizer( main )
@@ -164,7 +158,7 @@ class openFilePage ( wx.Frame ):
 
 		file_ext = os.path.splitext(selected_path)[1].lower()
 		if file_ext not in ['.xlsx', '.xml' ,'.json']:
-			wx.MessageBox("不支持的文件类型。请选择一个 .xlsx 或 .xml 或 .json 文件。", "错误", wx.OK | wx.ICON_ERROR)
+			wx.MessageBox("不支持的文件类型。请选择一个 .xlsx, .xml 或 .json 文件。", "错误", wx.OK | wx.ICON_ERROR)
 			return
 
 		print("用户选择了路径:", selected_path)
@@ -191,6 +185,8 @@ class openFilePage ( wx.Frame ):
 				file_path += '.xlsx'
 			elif filter_index == 1 and not file_path.lower().endswith('.xml'):
 				file_path += '.xml'
+			elif filter_index == 2 and not file_path.lower().endswith('.json'):
+				file_path += '.json'
 
 			file_ext = os.path.splitext(file_path)[1].lower()
 
@@ -199,6 +195,8 @@ class openFilePage ( wx.Frame ):
 					pd.DataFrame().to_excel(file_path, index=False)
 				elif file_ext == ".xml":
 					e.write_to_xml([], file_path)
+				elif file_ext == ".json":
+					e.write_to_json([], file_path)
 				else:
 					wx.MessageBox("未知的文件类型。", "错误", wx.OK | wx.ICON_ERROR)
 					dialog.Destroy()

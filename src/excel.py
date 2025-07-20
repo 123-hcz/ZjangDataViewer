@@ -37,8 +37,20 @@ def readXml(file_path: str):
     except (et.ParseError, FileNotFoundError):
         return []
 
+def readJson(file_path: str):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        if isinstance(data, list) and all(isinstance(row, list) for row in data):
+            return data
+        if isinstance(data, list) and not data:
+            return []
+        return []
+    except (json.JSONDecodeError, FileNotFoundError):
+        return []
+
 def xml_string_to_data(xml_string: str):
-    """从XML字符串解析数据为列表."""
+  
     try:
         root = et.fromstring(xml_string)
         data = []
@@ -223,8 +235,11 @@ def write_to_xml(data, filename):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(pretty_xml)
 
+def write_to_json(data, filename):
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
 def data_to_xml_string(data: list):
-    """将列表数据转换为XML格式的字符串."""
     root = et.Element("root")
     for row_data in data:
         row_elem = et.SubElement(root, "row")
@@ -232,12 +247,3 @@ def data_to_xml_string(data: list):
             col_elem = et.SubElement(row_elem, "col")
             col_elem.text = str(cell_data) if cell_data is not None else ""
     return et.tostring(root, 'unicode')
-
-
-if __name__ == "__main__":
-    excelValue = readExcel("D:\\下载\\8年级录分(1).xlsx","Sheet")
-    names = getNames(excelValue,1,3)
-    values = getValue(excelValue,1,3,"语文")
-    NameValueDic = getNameValueDict(names,values)
-
-    print(getCustomizeValue(NameValueDic,getCustomizeEquation("x<=72 # x-72 # x-20 ","float(Values[i])")))
