@@ -33,6 +33,7 @@ class MyFrame1 ( wx.Frame ):
 				print(type(i))
 				childItem = self.tree.AppendItem(parent_item, str(i[0]))
 				self.tree.AppendItem(childItem, str(i[1]))
+
 		# if isinstance(data, str):
 		#
 		# 		item = self.tree.AppendItem(parent_item, str(i))
