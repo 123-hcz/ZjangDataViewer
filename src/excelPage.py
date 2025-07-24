@@ -78,7 +78,9 @@ class AIChatFrame(wx.Frame):
 	def get_ai_response(self, user_message):
 		if self.is_destroyed: return
 		wx.CallAfter(self.history_ctrl.SetDefaultStyle, wx.TextAttr(wx.Colour(0, 128, 0)))
-		wx.CallAfter(self.history_ctrl.AppendText, "AI:\n")
+		# 检查是否是第一次AI回答
+		if len(self.conversation_history) == 1:  # 只有系统消息和第一条用户消息
+			wx.CallAfter(self.history_ctrl.AppendText, "AI:\n[提示] AI回答可能需要排队一段时间，请耐心等待\n")
 
 		api_url = "https://api.suanli.cn/v1/chat/completions"
 		api_key = "sk-OTi0r196VHjX2iMgNaPevYrXSP4VKO4s2coOjIyPdXq02okY"
@@ -154,12 +156,22 @@ XML的格式必须是 <root><row><col>...</col></row>...</root>，不要有<data
 		if xml_string:
 			new_data = e.xml_string_to_data(xml_string)
 			if new_data is not None:
-				wx.CallAfter(self.parent.update_grid_with_data, new_data)
-				self.update_history_text("[提示]: 已根据AI的回复更新表格内容。\n\n", wx.RED)
+				# 显示预览并询问用户是否同意修改
+				wx.CallAfter(self.show_preview_and_confirm, new_data)
 
 		self.send_button.Enable()
 		self.input_ctrl.Enable()
 		self.input_ctrl.SetFocus()
+
+	def show_preview_and_confirm(self, new_data):
+		# 创建预览窗口
+		preview_frame = PreviewFrame(self, new_data)
+		preview_frame.Show()
+		
+	def apply_ai_changes(self, new_data):
+		# 应用AI的更改
+		wx.CallAfter(self.parent.update_grid_with_data, new_data)
+		self.update_history_text("[提示]: 已根据AI的回复更新表格内容。\n\n", wx.RED)
 
 #--------------------------------------------------------------------------
 #  Class excelPage
@@ -711,6 +723,100 @@ class outputWindow ( wx.Frame ):
 		else:
 			wx.MessageBox("无法打开剪贴板", "错误", wx.OK | wx.ICON_ERROR)
 		event.Skip()
+
+# --------------------------------------------------------------------------
+#  表格预览窗口
+# --------------------------------------------------------------------------
+class PreviewFrame(wx.Frame):
+	def __init__(self, parent, data):
+		wx.Frame.__init__(self, parent, id=wx.ID_ANY, title="AI修改预览", pos=wx.DefaultPosition, size=wx.Size(800, 600), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+		self.parent = parent
+		self.data = data
+		
+		self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+		self.SetBackgroundColour(wx.Colour(255, 255, 255))
+
+		main_sizer = wx.BoxSizer(wx.VERTICAL)
+		
+		# 添加说明文本
+		self.info_text = wx.StaticText(self, wx.ID_ANY, "以下是AI建议的修改预览，请确认是否应用这些更改：", wx.DefaultPosition, wx.DefaultSize, 0)
+		self.info_text.Wrap(-1)
+		main_sizer.Add(self.info_text, 0, wx.ALL | wx.EXPAND, 5)
+		
+		# 创建预览表格
+		self.preview_grid = wx.grid.Grid(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
+		self.preview_grid.CreateGrid(0, 0)
+		self.update_grid_with_data(data)
+		
+		# 设置表格属性
+		self.preview_grid.EnableEditing(False)
+		self.preview_grid.EnableGridLines(True)
+		self.preview_grid.EnableDragGridSize(False)
+		self.preview_grid.SetMargins(0, 0)
+		self.preview_grid.EnableDragColMove(False)
+		self.preview_grid.EnableDragColSize(True)
+		self.preview_grid.SetColLabelSize(30)
+		self.preview_grid.SetColLabelAlignment(wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+		self.preview_grid.EnableDragRowSize(True)
+		self.preview_grid.SetRowLabelSize(60)
+		self.preview_grid.SetRowLabelAlignment(wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+		self.preview_grid.SetDefaultCellAlignment(wx.ALIGN_LEFT, wx.ALIGN_TOP)
+		
+		main_sizer.Add(self.preview_grid, 1, wx.ALL | wx.EXPAND, 5)
+		
+		# 添加按钮
+		button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+		self.cancel_button = wx.Button(self, wx.ID_ANY, "取消", wx.DefaultPosition, wx.DefaultSize, 0)
+		self.apply_button = wx.Button(self, wx.ID_ANY, "应用更改", wx.DefaultPosition, wx.DefaultSize, 0)
+		button_sizer.Add(self.cancel_button, 0, wx.ALL, 5)
+		button_sizer.AddStretchSpacer()
+		button_sizer.Add(self.apply_button, 0, wx.ALL, 5)
+		main_sizer.Add(button_sizer, 0, wx.ALL | wx.EXPAND, 5)
+		
+		self.SetSizer(main_sizer)
+		self.Layout()
+		self.Centre(wx.BOTH)
+		
+		# 绑定事件
+		self.cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
+		self.apply_button.Bind(wx.EVT_BUTTON, self.on_apply)
+		
+	def update_grid_with_data(self, data):
+		self.preview_grid.BeginBatch()
+		try:
+			data_rows = len(data) if data else 0
+			data_cols = max(len(row) for row in data) if data_rows > 0 else 0
+			
+			target_rows = max(data_rows + 10, 20)
+			target_cols = max(data_cols + 5, 10)
+			
+			current_rows = self.preview_grid.GetNumberRows()
+			current_cols = self.preview_grid.GetNumberCols()
+			
+			row_diff = target_rows - current_rows
+			if row_diff > 0: self.preview_grid.AppendRows(row_diff)
+			elif row_diff < 0: self.preview_grid.DeleteRows(target_rows, -row_diff)
+
+			col_diff = target_cols - current_cols
+			if col_diff > 0: self.preview_grid.AppendCols(col_diff)
+			elif col_diff < 0: self.preview_grid.DeleteCols(target_cols, -col_diff)
+
+			self.preview_grid.ClearGrid()
+			if data_rows > 0:
+				for i, row_data in enumerate(data):
+					for j, cell_data in enumerate(row_data):
+						self.preview_grid.SetCellValue(i, j, str(cell_data) if cell_data is not None and not pd.isna(cell_data) else "")
+		finally:
+			self.preview_grid.EndBatch()
+			self.preview_grid.ForceRefresh()
+			
+	def on_cancel(self, event):
+		self.Close()
+		
+	def on_apply(self, event):
+		# 调用父窗口的apply_ai_changes方法应用更改
+		self.parent.apply_ai_changes(self.data)
+		self.Close()
 
 if __name__ == '__main__':
 	app = wx.App(False)
