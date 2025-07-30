@@ -12,6 +12,7 @@ import decimal
 import pandas as pd
 import openpyxl
 import webbrowser
+import init
 
 _ = gettext.gettext
 import excel as e
@@ -30,7 +31,7 @@ if __name__ == '__main__':
 	
 	# 在检查更新之后，创建选择框让用户选择核心
 	def show_core_selection():
-		choices = ["web 核心：页面优美，暂却部分功能，推荐", "pandas核心：稳定，兼容性强，有最新功能"]
+		choices = ["web 核心：页面优美，暂却部分功能，推荐", "pandas 核心：稳定，兼容性强，有最新功能"]
 		dialog = wx.SingleChoiceDialog(frame, "请选择核心：", "选择核心", choices)
 		dialog.SetSelection(0)  # 默认选择第一个选项
 		
@@ -53,3 +54,6 @@ if __name__ == '__main__':
 	wx.CallAfter(show_core_selection)
 	
 	app.MainLoop()
+
+
+

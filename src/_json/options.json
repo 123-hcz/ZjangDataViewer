@@ -1,4 +1,5 @@
 {
+    "autoUpdate": true,
     "None_value_show": "",
     "language": "中文:中国",
     "debug": true,
@@ -13,4 +14,3 @@
     "showNoneValue": "",
     "theme": "theme_Classic"
 }
-
