@@ -1,85 +1,72 @@
-# -*- coding: utf-8 -*-
-
-#--------------------------------------------------------------------------
-# Python code generated with wxFormBuilder (version 3.9.0 Jun 14 2020)
-# http://www.wxformbuilder.org/
-#
-# PLEASE DO *NOT* EDIT THIS FILE!
-#--------------------------------------------------------------------------
-
 import wx
-import wx.xrc
-import wx.grid
+import json
+import os
 
-import gettext
-_ = gettext.gettext
+class OptionsFrame(wx.Frame):
 
-#--------------------------------------------------------------------------
-#  Class MyFrame1
-#---------------------------------------------------------------------------
+    def __init__(self, *args, **kw):
+        super(OptionsFrame, self ).__init__(*args, **kw)
+        self.panel = wx.Panel(self)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
 
-class MyFrame1 ( wx.Frame ):
+        # 读取_json/options.json文件
+        self.options_file = '_json/options.json'
+        if os.path.exists(self.options_file):
+            with open(self.options_file, 'r', encoding='utf-8') as f:
+                self.options = json.load(f)
+        else:
+            self.options = {}
 
-	def __init__(self, parent):
-		wx.Frame.__init__ (self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 430,460 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL)
+        # 创建滚动窗口
+        self.scrolled_window = wx.ScrolledWindow(self.panel, -1, style=wx.VSCROLL | wx.HSCROLL)
+        self.scrolled_window.SetScrollRate(5, 5)
+        self.scrolled_sizer = wx.BoxSizer(wx.VERTICAL)
 
-		self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
-		self.SetBackgroundColour(wx.Colour( 239, 235, 235 ))
+        # 创建重置和保存配置按钮
+        self.reset_button = wx.Button(self.panel, label='重置')
+        self.save_button = wx.Button(self.panel, label='保存配置')
+        self.reset_button.Bind(wx.EVT_BUTTON, self.on_reset)
+        self.save_button.Bind(wx.EVT_BUTTON, self.on_save)
 
-		main = wx.BoxSizer(wx.HORIZONTAL)
+        # 创建静态文本和输入框
+        self.input_boxes = {}
+        for key, value in self.options.items():
+            box_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            static_text = wx.StaticText(self.scrolled_window, label=key)
+            input_box = wx.TextCtrl(self.scrolled_window)
+            input_box.SetValue(str(value))
+            self.input_boxes[key] = input_box
 
-		self.m_Table1 = wx.grid.Grid(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
+            box_sizer.Add(static_text, 0, wx.ALL | wx.CENTER, 5)
+            box_sizer.Add(input_box, 1, wx.ALL | wx.EXPAND, 5)
+            self.scrolled_sizer.Add(box_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
-		# Grid
-		self.m_Table1.CreateGrid(50, 3)
-		self.m_Table1.EnableEditing(True)
-		self.m_Table1.EnableGridLines(True)
-		self.m_Table1.EnableDragGridSize(False)
-		self.m_Table1.SetMargins(0, 0)
+        self.scrolled_window.SetSizer(self.scrolled_sizer)
+        self.scrolled_window.Layout()
+        self.scrolled_sizer.Fit(self.scrolled_window)
 
-		# Columns
-		self.m_Table1.EnableDragColMove(False)
-		self.m_Table1.EnableDragColSize(True)
-		self.m_Table1.SetColLabelSize(30)
-		self.m_Table1.SetColLabelAlignment(wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+        # 将滚动窗口和按钮添加到主面板的布局中
+        self.sizer.Add(self.scrolled_window, 1, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.reset_button, 0, wx.ALL | wx.CENTER, 5)
+        self.sizer.Add(self.save_button, 0, wx.ALL | wx.CENTER, 5)
 
-		# Rows
-		self.m_Table1.EnableDragRowSize(True)
-		self.m_Table1.SetRowLabelSize(60)
-		self.m_Table1.SetRowLabelAlignment(wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+        self.panel.SetSizer(self.sizer)
+        self.panel.Layout()
+        self.sizer.Fit(self)
 
-		# Label Appearance
+    def on_reset(self, event):
+        for key, input_box in self.input_boxes.items():
+            input_box.SetValue(str(self.options[key]))
 
-		# Cell Defaults
-		self.m_Table1.SetDefaultCellAlignment(wx.ALIGN_LEFT, wx.ALIGN_TOP)
-		main.Add(self.m_Table1, 0, wx.ALL|wx.EXPAND, 5)
+    def on_save(self, event):
+        for key, input_box in self.input_boxes.items():
+            self.options[key] = input_box.GetValue()
+        with open(self.options_file, 'w', encoding='utf-8') as f:
+            json.dump(self.options, f, ensure_ascii=False, indent=4)
+        wx.MessageBox('配置已保存', '信息', wx.OK | wx.ICON_INFORMATION)
 
-		bar = wx.BoxSizer(wx.VERTICAL)
-
-		self.reset = wx.Button(self, wx.ID_ANY, _(u"恢复默认"), wx.DefaultPosition, wx.DefaultSize, 0)
-		bar.Add(self.reset, 0, wx.ALL, 5)
-
-		self.check = wx.Button(self, wx.ID_ANY, _(u"类型检查"), wx.DefaultPosition, wx.DefaultSize, 0)
-		bar.Add(self.check, 0, wx.ALL, 5)
-
-		self.open = wx.Button(self, wx.ID_ANY, _(u"打开json文件"), wx.DefaultPosition, wx.DefaultSize, 0)
-		bar.Add(self.open, 0, wx.ALL, 5)
-
-
-		main.Add(bar, 1, wx.EXPAND, 5)
-
-
-		self.SetSizer( main )
-		self.Layout()
-
-		self.Centre(wx.BOTH)
-
-	def __del__( self ):
-		pass
-
-
-if __name__ == "__main__":
-	app = wx.App(False)
-	frame = MyFrame1(None)
-	frame.Show(True)
-	app.MainLoop()
+if __name__ == '__main__':
+    app = wx.App(False)
+    frame = OptionsFrame(None, title='配置选项', size=(400, 300))
+    frame.Show()
+    app.MainLoop()
