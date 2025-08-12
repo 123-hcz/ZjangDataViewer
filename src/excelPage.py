@@ -18,6 +18,9 @@ import requests
 import json
 import threading
 import re
+import sys
+import os
+from setting import OptionsFrame
 
 _ = gettext.gettext
 
@@ -577,7 +580,8 @@ x>=100 # x-100:
 		event.Skip()
 
 	def toSetting( self, event ):
-		wx.MessageBox("此功能尚未实现。", "提示", wx.OK | wx.ICON_INFORMATION)
+		options_frame = OptionsFrame(self, title='配置选项', size=(500, 400))
+		options_frame.Show()
 		event.Skip()
 
 	def exit_( self, event ):

@@ -26,8 +26,7 @@ checkFile("_json/options.json",'''{
     "showColAdd": "*1.5",
     "showRowAdd": "*1.5",
     "showNoneValue": "",
-    "theme": "theme_Classic"
+    "theme": "theme_Classic",
+    "version": "Unknown"
 }'''
 )
-
-checkFile("version.txt","Unknown")

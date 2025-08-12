@@ -31,7 +31,7 @@ if __name__ == '__main__':
 	
 	# 在检查更新之后，创建选择框让用户选择核心
 	def show_core_selection():
-		choices = ["web 核心：页面优美，暂却部分功能，推荐", "pandas 核心：稳定，兼容性强，有最新功能"]
+		choices = [ "pandas 核心：稳定，兼容性强，有最新功能，推荐","web 核心：页面优美，暂却部分功能"]
 		dialog = wx.SingleChoiceDialog(frame, "请选择核心：", "选择核心", choices)
 		dialog.SetSelection(0)  # 默认选择第一个选项
 		
@@ -39,7 +39,7 @@ if __name__ == '__main__':
 			selection = dialog.GetSelection()
 			dialog.Destroy()
 			
-			if selection == 0:  # 选择 web 核心
+			if selection == 1:  # 选择 web 核心
 				# 使用 webbrowser 打开指定网页
 				webbrowser.open("https://123xls.fucku.top")
 				# 关闭文件选择窗口

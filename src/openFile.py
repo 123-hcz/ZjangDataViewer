@@ -13,20 +13,25 @@ import webbrowser
 import os
 import requests
 import threading
+import json
 
 import gettext
 from excelPage import excelPage_ 
 import pandas as pd
 import excel as e
-def read_version_from_file(filepath="version.txt"):
+def read_version_from_options():
+    """从options.json中读取版本号"""
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            version = f.read().strip()
-            print(f"[日志] 本地版本: {version}")
-            return version
-    except FileNotFoundError:
-        print("[日志] 未找到本地版本文件")
-        return "版本信息未找到"
+        options_file = os.path.join(os.path.dirname(__file__), '_json', 'options.json')
+        if os.path.exists(options_file):
+            with open(options_file, 'r', encoding='utf-8') as f:
+                options = json.load(f)
+                version = options.get("version", "版本信息未找到")
+                print(f"[日志] 本地版本: {version}")
+                return version
+        else:
+            print("[日志] 未找到options.json文件")
+            return "版本信息未找到"
     except Exception as exc:
         print(f"[日志] 读取版本信息出错: {exc}")
         return f"读取版本信息出错: {exc}"
@@ -124,7 +129,7 @@ class openFilePage ( wx.Frame ):
 		self.new.Bind(wx.EVT_BUTTON, self.onNewClick)
 		open_sizer.Add(self.new, 1, wx.ALL|wx.EXPAND, 5)
 
-		version = read_version_from_file()
+		version = read_version_from_options()
 		self.versionText = wx.StaticText(self, wx.ID_ANY, _(version), wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL)
 		open_sizer.Add(self.versionText, 0, wx.ALL|wx.EXPAND, 5)
 
@@ -135,7 +140,14 @@ class openFilePage ( wx.Frame ):
 
 		self.Centre(wx.BOTH)
 
-		check_update_and_prompt(self, version)
+		# 检查是否启用了自动更新
+		options_file = os.path.join(os.path.dirname(__file__), '_json', 'options.json')
+		if os.path.exists(options_file):
+			with open(options_file, 'r', encoding='utf-8') as f:
+				options = json.load(f)
+				auto_update = options.get("autoUpdate", True)
+				if auto_update:
+					check_update_and_prompt(self, version)
 
 	def getPath(self, event):
 		self.path = self.pathBox.GetPath()
