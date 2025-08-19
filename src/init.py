@@ -30,4 +30,4 @@ checkFile("_json/options.json",'''{
 }'''
 )
 
-checkFile("version.txt","Unknown")
+checkFile("version.txt","v2.2.3")

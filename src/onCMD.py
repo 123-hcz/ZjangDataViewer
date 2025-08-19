@@ -1,17 +1,37 @@
-import click #导入库click
+import excel
+import os
 
-@click.command()#设置命令
-@click.option('--count', default=2, help='Number of greetings. 问候的次数。')
-@click.option('--name', prompt='Your name',
-              help='The person to greet. 要问候的人。')
-def main(count, name):#主函数
-    #"""你可以输入以下命令."""
-    """$一个简单的程序，它向这个名字打招呼，表示总的计数次数
-        | Simple program that greets NAME for a total of COUNT times
-    """
-    #此处的"""  """用户查询命令时会输出，出来。
-    for x in range(count):
-        click.echo('Hello %s!' % name)
+config = excel.readConfig()
 
-if __name__ == '__main__':
-    main()
+filePath = None
+
+def runCommand(command):
+    global filePath
+    command = command.split(" ")
+    if command[0] == "exit":
+        exit()
+    elif command[0] == "help":
+        print("""
+        exit: 退出程序
+        help: 显示帮助信息
+        open <filePath>: 打开文件
+        """)
+    elif command[0] == "cd":
+        try:
+            os.chdir(command[1])
+            filePath = command[1]
+        except:
+            print("[错误] 无效的目录")
+    elif command[0] == "open":
+        try:
+            f = excel.readExcel(command[1],command[2])
+            print(f)
+        except:
+            print("[错误] 无效的文件")
+
+
+
+
+while True:
+    command = input(f"ZDV.2.2.3 & {filePath} > ")
+    runCommand(command)

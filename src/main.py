@@ -33,7 +33,7 @@ if __name__ == '__main__':
 	def show_core_selection():
 		choices = ["web 核心：页面优美，暂却部分功能，推荐", "pandas 核心：稳定，兼容性强，有最新功能"]
 		dialog = wx.SingleChoiceDialog(frame, "请选择核心：", "选择核心", choices)
-		dialog.SetSelection(0)  # 默认选择第一个选项
+		dialog.SetSelection(1)  # 默认选择第一个选项
 		
 		if dialog.ShowModal() == wx.ID_OK:
 			selection = dialog.GetSelection()
