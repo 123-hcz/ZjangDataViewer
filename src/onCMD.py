@@ -17,17 +17,28 @@ def runCommand(command):
         open <filePath>: 打开文件
         """)
     elif command[0] == "cd":
-        try:
-            os.chdir(command[1])
+        if os.path.exists(command[1]):
             filePath = command[1]
-        except:
+        else:
             print("[错误] 无效的目录")
+
     elif command[0] == "open":
         try:
-            f = excel.readExcel(command[1],command[2])
-            print(f)
+            if filePath is None:
+                f = excel.readExcel(command[1],command[2])
+
+
+            elif filePath.split(".")[-1] == "xlsx":
+                f = excel.readExcel(filePath,command[1])
+
+            for i in f:
+                for j in i:
+                    print(j, end="|\t")
+                print("\n")
+
         except:
             print("[错误] 无效的文件")
+
 
 
 
