@@ -18,6 +18,9 @@ import requests
 import json
 import threading
 import re
+import sys
+import os
+from setting import OptionsFrame
 
 _ = gettext.gettext
 
@@ -145,10 +148,21 @@ XML的格式必须是 <root><row><col>...</col></row>...</root>，不要有<data
 		self.update_history_text("\n\n")
 
 		xml_string = None
-		match = re.search(r'```xml\s*([\s\S]+?)\s*```', full_response, re.DOTALL)
-		if match:
-			xml_string = match.group(1).strip()
-		else:
+		# 查找所有```xml的位置
+		xml_start_matches = list(re.finditer(r'```xml', full_response))
+		if xml_start_matches:
+			# 使用最后一个```xml标记
+			last_match = xml_start_matches[-1]
+			start_pos = last_match.end()  # 从```xml之后开始
+			
+			# 从该位置向后查找```
+			end_pos = full_response.find('```', start_pos)
+			if end_pos != -1:
+				# 提取中间的内容
+				xml_string = full_response[start_pos:end_pos].strip()
+		
+		# 如果没有找到```xml ... ```格式，检查整个响应是否是XML
+		if not xml_string:
 			stripped_response = full_response.strip()
 			if stripped_response.startswith('<root>') and stripped_response.endswith('</root>'):
 				xml_string = stripped_response
@@ -577,7 +591,8 @@ x>=100 # x-100:
 		event.Skip()
 
 	def toSetting( self, event ):
-		wx.MessageBox("此功能尚未实现。", "提示", wx.OK | wx.ICON_INFORMATION)
+		options_frame = OptionsFrame(self, title='配置选项', size=(500, 400))
+		options_frame.Show()
 		event.Skip()
 
 	def exit_( self, event ):

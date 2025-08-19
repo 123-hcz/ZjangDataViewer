@@ -12,5 +12,6 @@
     "showColAdd": "*1.6",
     "showRowAdd": "*1.5",
     "showNoneValue": "",
-    "theme": "theme_Classic"
+    "theme": "theme_Classic",
+    "version": "v2.2.3"
 }
