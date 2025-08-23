@@ -5,6 +5,29 @@ config = excel.readConfig()
 
 filePath = None
 
+class Log():
+    LogError = 1
+    LogInfo = 2
+    LogDebug = 3
+    LogWarning = 4
+
+    def __init__():
+        pass
+
+    
+    def log(information,level):
+        if level == 1:
+            print(f"[错误] {information}\n")
+        elif level == 2:
+            print(f"[信息] {information}\n")
+        elif level == 3:
+            print(f"[调试] {information}\n")
+        elif level == 4:
+            print(f"[警告] {information}\n")
+
+L = Log
+
+
 def runCommand(command):
     global filePath
     command = command.split(" ")
@@ -20,7 +43,7 @@ def runCommand(command):
         if os.path.exists(command[1]):
             filePath = command[1]
         else:
-            print("[错误] 无效的目录")
+            L.log(f"目录 {command[1]} 不存在",L.LogError)
 
     elif command[0] == "open":
         try:
@@ -30,14 +53,17 @@ def runCommand(command):
 
             elif filePath.split(".")[-1] == "xlsx":
                 f = excel.readExcel(filePath,command[1])
+            
 
             for i in f:
                 for j in i:
                     print(j, end="|\t")
                 print("\n")
+            
+            L.log(f"打开文件 {command[1]} 成功",L.LogInfo)
 
         except:
-            print("[错误] 无效的文件")
+            L.log("打开文件失败",L.LogError)
 
 
 
@@ -46,3 +72,4 @@ def runCommand(command):
 while True:
     command = input(f"ZDV.2.2.3 & {filePath} > ")
     runCommand(command)
+
