@@ -278,9 +278,3 @@ def RankSubSort(file ,sub):
         os.remove(file + f"_{sub}排名_.tmp.xlsx")
     except Exception as e:
         raise(f"请检查文件路径或文件格式，以及第一行是否包含{sub}排名列")
-
-if __name__ == "__main__":
-    AddPaiMing("D:\下载\8年级录分(1).xlsx","地理")
-    RankSubSort("D:\下载\8年级录分(1).xlsx","地理")
-
-
