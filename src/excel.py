@@ -247,3 +247,40 @@ def data_to_xml_string(data: list):
             col_elem = et.SubElement(row_elem, "col")
             col_elem.text = str(cell_data) if cell_data is not None else ""
     return et.tostring(root, 'unicode')
+
+def getTopN(NameValueDic:dict,TopN:int):
+    Values = list(NameValueDic.values())
+    Names = list(NameValueDic.keys())
+    output = []
+    for i in range(TopN):
+        try:
+            output.append(f"{Names[i]} : {Values[i]}")
+        except (ValueError, TypeError):
+            pass
+    return output
+
+def AddPaiMing(file ,sub):
+    try:
+        df = pd.read_excel(file)
+        df[f'{sub}排名'] = df[sub].rank(ascending=False, method='min')
+        df.to_excel(file + f"_{sub}排名.xlsx", index=False)
+    except Exception as e:
+        raise(f"请检查文件路径或文件格式，以及第一行是否包含{sub}列")
+
+def RankSubSort(file ,sub):
+    try:
+        df = pd.read_excel(file)
+        df[f'{sub}排名'] = df[sub].rank(ascending=False, method='min')
+        df.to_excel(file + f"_{sub}排名_.tmp.xlsx", index=False)
+        df = pd.read_excel(file + f"_{sub}排名_.tmp.xlsx")
+        df.sort_values(by=[f'{sub}排名'], inplace=True)
+        df.to_excel(file + f"_{sub}排名排序.xlsx", index=False)
+        os.remove(file + f"_{sub}排名_.tmp.xlsx")
+    except Exception as e:
+        raise(f"请检查文件路径或文件格式，以及第一行是否包含{sub}排名列")
+
+if __name__ == "__main__":
+    AddPaiMing("D:\下载\8年级录分(1).xlsx","地理")
+    RankSubSort("D:\下载\8年级录分(1).xlsx","地理")
+
+

@@ -64,6 +64,22 @@ def runCommand(command):
 
         except:
             L.log("打开文件失败",L.LogError)
+    
+    elif command[0] == "get":
+        if command[1] == "max":
+            pass
+
+        elif command[1] == "min":
+            pass
+
+        elif command[1] == "average":
+            pass
+
+        elif command[1] == "customize":
+            pass
+        
+        elif command[1] == "datavaluedict":
+            pass
 
 
 

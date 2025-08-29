@@ -279,6 +279,16 @@ class excelPage_ ( wx.Frame ):
 		self.getCustomize.SetToolTip(_(u"自定义准则，挑选符合准则的项"))
 		tools.Add(self.getCustomize, 0, 0, 5)
 
+		self.Paiming = wx.Button(self, wx.ID_ANY, _(u"自动标注排名"), wx.DefaultPosition, wx.DefaultSize, 0)
+		self.Paiming.Hide()
+		self.Paiming.SetToolTip(_(u"自动排名"))
+		tools.Add(self.Paiming, 0, 0, 5)
+
+		self.RankSubSort = wx.Button(self, wx.ID_ANY, _(u"自动按值排列"), wx.DefaultPosition, wx.DefaultSize, 0)
+		self.RankSubSort.Hide()
+		self.RankSubSort.SetToolTip(_(u"自动按值排列"))
+		tools.Add(self.RankSubSort, 0, 0, 5)
+
 		self.customizeInput = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
 		self.customizeInput.Hide()
 		self.customizeInput.SetToolTip(
@@ -435,10 +445,12 @@ x>=100 # x-100:
 		self.itemRowInput1.Bind(wx.EVT_TEXT, self.getItemChoice)
 		self.mainGrid.Bind(wx.grid.EVT_GRID_RANGE_SELECTED, self.setUndersideText)
 		self.sheetChoice.Bind(wx.EVT_CHOICE, self.onSheetChange)
+		self.Paiming.Bind(wx.EVT_BUTTON, self.getPaiming_)
+		self.RankSubSort.Bind(wx.EVT_BUTTON, self.getRankSubSort)
 
 		self.Tags = [self.tagFile, self.tagJiSuan, self.tagAutom, self.tagAI, self.tagNone1, self.tagNone2, self.tagNone3, self.tagNone4, self.tagNone5, self.tagNone6]
 		self.fileTagControl = [self.funcText, self.inputFanc, self.sheetChoice, self.save, self.saveas]
-		self.toolTagControl = [self.getMax, self.getMin, self.getAvg, self.getCustomize, self.customizeInput, self.nameCol, self.nameColInput, self.itemRow, self.itemRowInput1, self.itemChoice]
+		self.toolTagControl = [self.RankSubSort,self.Paiming,self.getMax, self.getMin, self.getAvg, self.getCustomize, self.customizeInput, self.nameCol, self.nameColInput, self.itemRow, self.itemRowInput1, self.itemChoice]
 		self.toFileTag(None)
 
 	def onAI(self, event):
@@ -707,6 +719,26 @@ x>=100 # x-100:
 			outputWindow(parent=self, Message=cus).Show()
 		except Exception as err:
 			wx.MessageBox(f"执行自定义计算时出错: {err}", "错误", wx.OK | wx.ICON_ERROR)
+		event.Skip()
+	
+	def getPaiming_( self, event ):
+		try:
+			file = self.path
+			sub = self.itemChoice.GetStringSelection()
+			paiming = e.AddPaiMing(file,sub)
+			wx.MessageBox(f"排名完毕，保存在同一路径下的{str(file)}_{str(sub)}排名.xlsx 文件","提示", wx.OK | wx.ICON_INFORMATION)
+		except Exception as err:
+			wx.MessageBox(f"计算排名时出错: {err}", "错误", wx.OK | wx.ICON_ERROR)
+		event.Skip()
+	
+	def getRankSubSort(self, event ):
+		try:
+			file = self.path
+			sub = self.itemChoice.GetStringSelection()
+			paiming = e.RankSubSort(file,sub)
+			wx.MessageBox(f"排名完毕，保存在同一路径下的{str(file)}_{str(sub)}排名排序.xlsx 文件","提示", wx.OK | wx.ICON_INFORMATION)
+		except Exception as err:
+			wx.MessageBox(f"计算排名时出错: {err}", "错误", wx.OK | wx.ICON_ERROR)
 		event.Skip()
 
 class outputWindow ( wx.Frame ):
